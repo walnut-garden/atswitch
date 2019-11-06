@@ -1,0 +1,9 @@
+PGM PARM(&P1 &P2)
+DCL VAR(&P1) TYPE(*CHAR) LEN(32)
+DCL VAR(&P2) TYPE(*DEC) LEN(15 5)
+IF (&P1 *EQ DATA) THEN(CALL MYPROG &P2)
+ENDPGM複製
+To call this program, you could specify:
+
+CALL PROG (DATA 136)複製
+The character string DATA is passed to &P1; the decimal value 136 is passed to &P2
