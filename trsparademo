@@ -8,3 +8,56 @@ To call this program, you could specify:
 CALL PROG (DATA 136)複製
 The character string DATA is passed to &P1; the decimal value 136 is passed to &P2
 https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_73/rbam6/passp.htm
+
+
+
+MAIN: PGM   PARM(&TEXT)/* &TEXT must be specified.  Results will be +
+                unpredictable if it is omitted.*/
+      DCL   VAR(&TEXT) TYPE(*CHAR) LEN(10)
+      CALLPRC   PRC(PROC1) PARM('0')
+      CALLPRC   PRC(PROC1) PARM('1' &TEXT)
+      CALLPRC   PRC(PROC1) PARM('1' 'Goodbye')
+      ENDPGM
+ 
+PROC1: PGM   PARM(&P1 &P2) /* PROC1 - Procedure with optional +
+           parameter &P2 */
+     DCL  VAR(&P1) TYPE(*LGL) /*Flag which indicates +
+         whether or not &P2 will be specified. If +
+         value is '1', then &P2 is specified */
+     DCL   VAR(&P2) TYPE(*CHAR) LEN(10)
+     DCL   VAR(&MSG) TYPE(*CHAR) LEN(10)
+     DCL   VAR(&PARMPOS) TYPE(*CHAR) LEN(4) /* +
+          Parameter position for CEEDOD*/
+     DCL   VAR(&PARMDESC) TYPE(*CHAR) LEN(4) /* +
+          Parameter description for CEEDOD*/
+     DCL   VAR(&PARMTYPE) TYPE(*CHAR) LEN(4) /* +
+          Parameter datatype from CEEDOD*/
+     DCL   VAR(&PARMINFO1) TYPE(*CHAR) LEN(4) /* +
+          Parameter information from CEEDOD */
+     DCL   VAR(&PARMINFO2) TYPE(*CHAR) LEN(4) /* +
+          Parameter information from CEEDOD */
+     DCL   VAR(&PARMLEN) TYPE(*CHAR) LEN(4) /* +
+          Parameter length from CEEDOD*/
+     DCL   VAR(&PARMLEND) TYPE(*DEC) LEN(3 0) /* +
+          Decimal form of parameter length*/
+     IF   COND(&P1) THEN(DO) /* Parm 2 is+
+          specified, so use the parm value for the +
+          message text*/
+     CHGVAR  VAR(%BIN(&PARMPOS 1 4)) VALUE(2) /* Tell +
+          CEEDOD that we want the operational +
+          descriptor for the second parameter*/
+     CALLPRC  PRC(CEEDOD) PARM(&PARMPOS &PARMDESC +
+          &PARMTYPE &PARMINFO1 &PARMINFO2 &PARMLEN) +
+          /* Call CEEDOD to get the length of data +
+          specified for &P2*/
+      CHGVAR  VAR(&PARMLEND) VALUE(%BIN(&PARMLEN 1 4)) /* +
+              Convert the length returned by CEEDOD to +
+              decimal format*/
+      CHGVAR  VAR(&MSG) VALUE(%SST(&P2 1 &PARMLEND)) /* +
+            Copy the data passed in to a local variable*/
+      ENDO
+      ELSE   CMD(CHGVAR VAR(%MSG) VALUE('Hello')) /* Use +
+             "Hello" for the message text*/
+      SNDPGMMSG MSG(&MSG)
+      ENDPGM
+ 
